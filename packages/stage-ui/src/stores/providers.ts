@@ -254,6 +254,43 @@ export const useProvidersStore = defineStore('providers', () => {
       creator: createOpenRouter,
       validation: ['health', 'model_list', 'chat_completions'],
     }),
+    'cartesia': buildOpenAICompatibleProvider({
+      id: 'cartesia',
+      name: 'Cartesia',
+      nameKey: 'settings.pages.providers.provider.cartesia.title',
+      descriptionKey: 'settings.pages.providers.provider.cartesia.description',
+      icon: 'i-solar:soundwave-bold-duotone',
+      description: 'cartesia.ai',
+      category: 'speech',
+      tasks: ['text-to-speech'],
+      // Do not set defaultBaseUrl to avoid misconfiguration; user will input
+      creator: createOpenAI,
+      capabilities: {
+        listVoices: async () => {
+          // Voice listing is not implemented; provide your voice id manually in settings
+          return []
+        },
+      },
+      validators: {
+        validateProviderConfig: (config) => {
+          const errors = [
+            !config.apiKey && new Error('API key is required.'),
+            !config.baseUrl && new Error('Base URL is required.'),
+          ].filter(Boolean)
+
+          const res = baseUrlValidator.value(config.baseUrl)
+          if (res) {
+            return res
+          }
+
+          return {
+            errors,
+            reason: errors.filter(e => e).map(e => String(e)).join(', ') || '',
+            valid: !!config.apiKey && !!config.baseUrl,
+          }
+        },
+      },
+    }),
     'app-local-audio-speech': buildOpenAICompatibleProvider({
       id: 'app-local-audio-speech',
       name: 'App (Local)',

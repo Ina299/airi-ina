@@ -1,3 +1,4 @@
+import { copyFileSync, existsSync, mkdirSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { cwd, env } from 'node:process'
 
@@ -141,6 +142,33 @@ export default defineConfig({
 
     // https://github.com/webfansplz/vite-plugin-vue-devtools
     VueDevTools(),
+
+    // Copy local VRM file at repo root into public assets if present
+    (function CopyLocalVRM() {
+      const name = 'copy-local-vrm'
+      const src = resolve(import.meta.dirname, '..', '..', '概念イナハラべーた.vrm')
+      const destDir = resolve(import.meta.dirname, 'public', 'assets', 'vrm', 'models', 'Nahara')
+      const dest = resolve(destDir, '概念イナハラべーた.vrm')
+
+      function copyIfExists() {
+        try {
+          if (existsSync(src)) {
+            if (!existsSync(destDir))
+              mkdirSync(destDir, { recursive: true })
+            copyFileSync(src, dest)
+          }
+        }
+        catch {
+          // ignore copy errors
+        }
+      }
+
+      return {
+        name,
+        configureServer() { copyIfExists() },
+        buildStart() { copyIfExists() },
+      }
+    })(),
 
     DownloadLive2DSDK(),
     Download('https://dist.ayaka.moe/live2d-models/hiyori_free_zh.zip', 'hiyori_free_zh.zip', 'assets/live2d/models'),
